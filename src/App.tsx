@@ -26,13 +26,23 @@ const formatDuration = (totalSeconds: number): string => {
 const App: React.FC = () => {
 	// --- 状態管理 ---
 	const [now, setNow] = useState<Date>(new Date());
-	const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
+
+	// 【変更点1】初期化時にLocalStorageからデータを取得する
+	const [schedule, setSchedule] = useState<ScheduleItem[]>(() => {
+		const saved = localStorage.getItem("mySchedule");
+		return saved ? JSON.parse(saved) : [];
+	});
 
 	// --- 1秒ごとのタイマー ---
 	useEffect(() => {
 		const timer = setInterval(() => setNow(new Date()), 1000);
 		return () => clearInterval(timer);
 	}, []);
+
+	// 【変更点2】scheduleが更新されたらLocalStorageに保存する
+	useEffect(() => {
+		localStorage.setItem("mySchedule", JSON.stringify(schedule));
+	}, [schedule]);
 
 	// --- CSV読み込み処理 ---
 	const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -82,16 +92,25 @@ const App: React.FC = () => {
 		<div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans antialiased text-slate-900">
 			<div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl shadow-blue-100 overflow-hidden border border-white">
 				{/* CSVアップローダーセクション */}
-				<div className="p-6 bg-slate-900 text-white">
-					<label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3">
-						Import Schedule (CSV)
-					</label>
-					<input
-						type="file"
-						accept=".csv"
-						onChange={handleFileUpload}
-						className="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all"
-					/>
+				<div className="p-6 bg-slate-900 text-white flex justify-between items-end">
+					<div className="flex-1">
+						<label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3">
+							Import Schedule (CSV)
+						</label>
+						<input
+							type="file"
+							accept=".csv"
+							onChange={handleFileUpload}
+							className="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer transition-all"
+						/>
+					</div>
+					{/* リセットボタンの追加（任意） */}
+					<button
+						onClick={() => setSchedule([])}
+						className="ml-4 text-[10px] font-black uppercase text-red-500 hover:text-red-400 transition-colors mb-2"
+					>
+						Clear
+					</button>
 				</div>
 
 				<div className="p-10 space-y-10">
