@@ -143,11 +143,19 @@ const App: React.FC = () => {
 			</header>
 
 			{/* サイドメニュー（スケジュール） */}
+			{menuOpen && (
+				<div
+					className="fixed inset-0 z-40 bg-black/30"
+					onClick={() => setMenuOpen(false)}
+					aria-label="メニューを閉じる背景"
+				/>
+			)}
 			<div
 				className={`fixed top-0 right-0 h-full w-80 max-w-full bg-slate-900 shadow-lg z-50 transform transition-transform duration-300 ${
 					menuOpen ? "translate-x-0" : "translate-x-full"
 				}`}
 				style={{ transitionProperty: "transform" }}
+				onClick={(e) => e.stopPropagation()} // サイドメニュー内クリックで閉じない
 			>
 				<div className="flex justify-between items-center p-4 border-b border-white/10 bg-slate-900 lg:bg-white/5">
 					<p className="text-slate-200 font-black text-xs tracking-widest uppercase">
