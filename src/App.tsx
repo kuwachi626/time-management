@@ -151,13 +151,12 @@ const App: React.FC = () => {
 				/>
 			)}
 			<div
-				className={`fixed top-0 right-0 h-full w-80 max-w-full bg-slate-900 shadow-lg z-50 transform transition-transform duration-300 ${
-					menuOpen ? "translate-x-0" : "translate-x-full"
-				}`}
-				style={{ transitionProperty: "transform" }}
-				onClick={(e) => e.stopPropagation()} // サイドメニュー内クリックで閉じない
+				className={`fixed top-0 right-0 h-full max-w-[90vw] bg-slate-900 z-50 
+							transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+							${menuOpen ? "translate-x-0" : "translate-x-full"}`}
+				onClick={(e) => e.stopPropagation()}
 			>
-				<div className="flex justify-between items-center p-4 border-b border-white/10 bg-slate-900 lg:bg-white/5">
+				<div className="flex justify-between items-center p-4 border-b border-white/10 bg-slate-900">
 					<p className="text-slate-200 font-black text-xs tracking-widest uppercase">
 						Full Schedule
 					</p>
