@@ -105,7 +105,7 @@ const App: React.FC = () => {
 	const remainingTime = current ? current.endSec - nowSec : 0;
 
 	return (
-		<div className="h-screen w-full flex flex-col font-sans overflow-hidden">
+		<div className="h-[100svh] w-full flex flex-col font-sans overflow-hidden">
 			{/* ヘッダー: コンパクト化 */}
 			<header className="flex justify-between items-center px-4 py-2 bg-slate-900 shrink-0 border-b border-white/10">
 				<div className="flex items-center gap-4">
