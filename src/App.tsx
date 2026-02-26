@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, ChangeEvent } from "react";
+import React, { useState, useEffect, useMemo, type ChangeEvent } from "react";
 
 // --- 型定義 ---
 interface ScheduleItem {
