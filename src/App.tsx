@@ -2,11 +2,12 @@ import React, { useState, useEffect, useMemo, ChangeEvent } from "react";
 
 // --- 型定義 ---
 interface ScheduleItem {
-	times: string; // 回数 (例: 1(5))
-	className: string; // クラス (例: RMC)
-	start: string; // 開始 (例: 9:00)
-	end: string; // 終了 (例: 9:15)
-	duration: string; // 走行時間 (例: 0:15)
+	currentTimes: string;
+	times: string;
+	className: string;
+	start: string;
+	end: string;
+	duration: string;
 	startSec: number;
 	endSec: number;
 }
@@ -28,6 +29,7 @@ const formatDuration = (totalSeconds: number): string => {
 
 const App: React.FC = () => {
 	const [now, setNow] = useState<Date>(new Date());
+	const [menuOpen, setMenuOpen] = useState(false);
 
 	// LocalStorageから初期データを取得
 	const [schedule, setSchedule] = useState<ScheduleItem[]>(() => {
@@ -58,12 +60,19 @@ const App: React.FC = () => {
 
 			const data: ScheduleItem[] = lines
 				.map((line) => {
-					// 回数,クラス,開始,終了,走行時間 の5カラム
-					const [times, className, start, end, duration] =
-						line.split(",");
-					if (!times || !className || !start || !end) return null;
+					const [
+						currentTimes,
+						times,
+						className,
+						start,
+						end,
+						duration,
+					] = line.split(",");
+					if (!currentTimes || !times || !className || !start || !end)
+						return null;
 
 					return {
+						currentTimes: currentTimes.trim(),
 						times: times.trim(),
 						className: className.trim(),
 						start: start.trim(),
@@ -96,111 +105,155 @@ const App: React.FC = () => {
 	const remainingTime = current ? current.endSec - nowSec : 0;
 
 	return (
-		<div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 font-sans antialiased text-slate-900">
-			<div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-white">
-				{/* CSVアップローダー */}
-				<div className="p-6 bg-blue-900 text-white flex justify-between items-end">
-					<div className="flex-1">
-						<label className="block text-[10px] font-black uppercase tracking-widest text-blue-400 mb-2">
-							Import Track Schedule
-						</label>
+		<div className="h-screen w-full flex flex-col font-sans overflow-hidden">
+			{/* ヘッダー: コンパクト化 */}
+			<header className="flex justify-between items-center px-4 py-2 bg-slate-900 shrink-0 border-b border-white/10">
+				<div className="flex items-center gap-4">
+					<label className="flex items-center gap-2 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-bold transition-colors">
+						<span>CSVアップロード</span>
 						<input
 							type="file"
 							accept=".csv"
 							onChange={handleFileUpload}
-							className="block w-full text-xs text-blue-200 file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer"
+							className="hidden"
 						/>
-					</div>
+					</label>
+				</div>
+				<div className="flex items-center gap-4">
 					<button
 						onClick={() => setSchedule([])}
-						className="ml-4 text-[10px] font-black text-red-400 uppercase mb-1"
+						className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-bold uppercase transition-colors"
 					>
 						Clear
 					</button>
+					<div className="text-2xl text-white font-mono font-bold tabular-nums">
+						{now.toLocaleTimeString("ja-JP", { hour12: false })}
+					</div>
+					{/* ハンバーガーメニューアイコン */}
+					<button
+						className="ml-2 flex flex-col justify-center items-center w-10 h-10 rounded hover:bg-slate-700 transition-colors"
+						onClick={() => setMenuOpen(true)}
+						aria-label="スケジュールを開く"
+					>
+						<span className="block w-6 h-0.5 bg-white mb-1"></span>
+						<span className="block w-6 h-0.5 bg-white mb-1"></span>
+						<span className="block w-6 h-0.5 bg-white"></span>
+					</button>
 				</div>
+			</header>
 
-				<div className="p-8 space-y-8">
-					{/* 現在時刻 */}
-					<div className="text-center">
-						<div className="text-4xl font-black tracking-tighter tabular-nums text-slate-800">
-							{now.toLocaleTimeString("ja-JP", { hour12: false })}
-						</div>
-						<p className="text-[10px] font-bold text-slate-400 uppercase mt-1">
-							Current Time
-						</p>
-					</div>
-
-					{/* メインセッション表示 */}
-					<div className="space-y-6">
-						<section className="bg-blue-50 rounded-3xl p-6 border border-blue-100">
-							<p className="text-[10px] font-black text-blue-400 uppercase mb-2">
-								Now Racing
-							</p>
-							<div className="flex flex-col">
-								<div className="flex items-center gap-2 mb-1">
-									<span className="text-sm font-black bg-blue-600 text-white px-2 py-0.5 rounded shadow-sm">
-										{current?.times || "---"}
+			{/* サイドメニュー（スケジュール） */}
+			<div
+				className={`fixed top-0 right-0 h-full w-80 max-w-full bg-slate-900 shadow-lg z-50 transform transition-transform duration-300 ${
+					menuOpen ? "translate-x-0" : "translate-x-full"
+				}`}
+				style={{ transitionProperty: "transform" }}
+			>
+				<div className="flex justify-between items-center p-4 border-b border-white/10 bg-slate-900 lg:bg-white/5">
+					<p className="text-slate-200 font-black text-xs tracking-widest uppercase">
+						Full Schedule
+					</p>
+					<button
+						className="text-white text-2xl px-2"
+						onClick={() => setMenuOpen(false)}
+						aria-label="閉じる"
+					>
+						×
+					</button>
+				</div>
+				<div className="flex-1 overflow-y-auto p-2 space-y-1 h-[calc(100vh-56px)]">
+					{schedule.map((item, index) => {
+						const isCurrent = current === item;
+						return (
+							<div
+								key={index}
+								className={`flex justify-between items-center p-3 rounded transition-colors ${
+									isCurrent
+										? "bg-blue-600 text-white"
+										: "hover:bg-white/5 text-slate-200"
+								}`}
+							>
+								<div className="flex gap-3 items-center min-w-0">
+									<span className="text-[10px] w-8 shrink-0">
+										{`${item.currentTimes}/${item.times}`}
 									</span>
-									<h2 className="text-2xl font-black text-blue-900 truncate">
-										{current?.className || "No Session"}
-									</h2>
-								</div>
-								<div className="flex justify-between items-baseline">
-									<span className="text-sm font-bold text-blue-700">
-										{current
-											? `${current.start} - ${current.end}`
-											: "--:--"}
+									<span className="text-sm font-bold truncate">
+										{item.className}
 									</span>
-									{current && (
-										<span className="text-xs font-bold text-blue-400">
-											Duration: {current.duration}
-										</span>
-									)}
 								</div>
+								<span className="text-xs font-mono font-bold shrink-0 ml-2">
+									{`${item.start} - ${item.end}`}
+								</span>
 							</div>
-						</section>
-
-						{/* カウントダウン */}
-						<div className="bg-slate-900 rounded-3xl p-6 text-center">
-							<p className="text-[10px] font-black text-slate-500 uppercase mb-1">
-								Session Ends In
-							</p>
-							<p className="text-5xl font-mono font-bold text-white tabular-nums tracking-tight">
-								{formatDuration(remainingTime)}
-							</p>
-						</div>
-
-						{/* 次の予定 */}
-						<section className="p-5 bg-slate-50 rounded-2xl border border-slate-200">
-							<p className="text-[10px] font-black text-slate-400 uppercase mb-2 text-center">
-								Up Next
-							</p>
-							{next ? (
-								<div className="flex justify-between items-center">
-									<div>
-										<div className="flex items-center gap-2">
-											<span className="text-[10px] font-bold bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded">
-												{next.times}
-											</span>
-											<h3 className="text-lg font-black text-slate-700">
-												{next.className}
-											</h3>
-										</div>
-										<p className="text-xs font-bold text-slate-400 ml-10">
-											{next.start} - {next.end}
-										</p>
-									</div>
-									<div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse"></div>
-								</div>
-							) : (
-								<p className="text-center text-sm font-bold text-slate-400 uppercase">
-									Checkered Flag
-								</p>
-							)}
-						</section>
-					</div>
+						);
+					})}
 				</div>
 			</div>
+
+			{/* メイン: スマホで縦、PCで横並び */}
+			<main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+				{/* 左側: カウントダウン ＆ メイン情報 */}
+				<div className="flex-1 flex flex-col p-6 lg:p-10 justify-between border-b lg:border-b-0 lg:border-r border-white/10 overflow-hidden">
+					{/* 現在のクラス情報 */}
+					<div className="shrink-0">
+						<p className="text-blue-500 font-black text-xs tracking-[0.3em] uppercase mb-2">
+							Now Racing
+						</p>
+						<div className="flex items-baseline gap-4 flex-wrap">
+							<span className="text-3xl lg:text-5xl font-black text-slate-500">
+								{`${current?.currentTimes}/${current?.times || "--"}`}
+							</span>
+							<h2 className="text-4xl lg:text-7xl font-black uppercase tracking-tight break-words max-w-full">
+								{current?.className || "No Data"}
+							</h2>
+						</div>
+						<div className="text-xl lg:text-3xl font-bold text-slate-400 mt-2">
+							{current
+								? `${current.start} - ${current.end}`
+								: "Standby"}
+						</div>
+					</div>
+
+					{/* カウントダウン: 画面幅に合わせてスケーリング (vwを使用) */}
+					<div className="flex-1 flex items-center justify-center">
+						<p
+							className="font-mono font-black tabular-nums leading-none tracking-tighter"
+							style={{ fontSize: "clamp(4rem, 22vw, 25rem)" }}
+						>
+							{formatDuration(remainingTime)}
+						</p>
+					</div>
+				</div>
+			</main>
+			{/* フッター的なステータス */}
+			<footer className="shrink-0 flex justify-between items-end border-t border-white/5 pt-4 bg-slate-800 text-white px-4 py-2">
+				<div>
+					<p className="text-orange-400 font-black text-[10px] tracking-widest uppercase mb-1">
+						Next
+					</p>
+					<p className="text-lg lg:text-2xl font-bold">
+						{next?.className || "Finished"}
+					</p>
+				</div>
+				<div className="text-center flex flex-col items-center justify-center px-2">
+					<p className="text-slate-300 font-black text-[10px] tracking-widest uppercase mb-1">
+						Time
+					</p>
+					<p className="text-base lg:text-lg font-mono font-bold">
+						{next
+							? `${next.start} ～ ${next.end}`
+							: "--:-- ～ --:--"}
+					</p>
+				</div>
+				<div className="text-right">
+					<p className="text-slate-400 font-black text-[10px] tracking-widest uppercase mb-1">
+						Duration
+					</p>
+					<p className="text-lg lg:text-2xl font-bold">
+						{next?.duration || "--:--"}
+					</p>
+				</div>
+			</footer>
 		</div>
 	);
 };
