@@ -203,8 +203,10 @@ const App: React.FC = () => {
 				<div className="flex-1 flex flex-col p-6 lg:p-10 justify-between border-b lg:border-b-0 lg:border-r border-white/10 overflow-hidden">
 					{/* 現在のクラス情報 */}
 					<div className="shrink-0">
-						<p className="text-blue-500 font-black text-xs tracking-[0.3em] uppercase mb-2">
-							Now Racing
+						<p
+							className={`${current ? "text-blue-500" : "text-slate-500"} font-black text-xs tracking-[0.3em] uppercase mb-2`}
+						>
+							{current ? "Now Session" : "Standby"}
 						</p>
 						<div className="flex items-baseline gap-4 flex-wrap">
 							<span className="text-3xl lg:text-5xl font-black text-slate-500">
@@ -214,7 +216,7 @@ const App: React.FC = () => {
 								{current?.className || "No Data"}
 							</h2>
 						</div>
-						<div className="text-xl lg:text-3xl font-bold text-slate-400 mt-2">
+						<div className="text-4xl lg:text-3xl font-bold mt-2">
 							{current
 								? `${current.start} - ${current.end}`
 								: "Standby"}
