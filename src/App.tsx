@@ -235,30 +235,28 @@ const App: React.FC = () => {
 				</div>
 			</main>
 			{/* フッター的なステータス */}
-			<footer className="shrink-0 flex justify-between items-end border-t border-white/5 pt-4 bg-slate-800 text-white px-4 py-2">
-				<div>
-					<p className="text-orange-400 font-black text-[10px] tracking-widest uppercase mb-1">
+			<footer className="shrink-0 flex flex-col lg:flex-row lg:justify-center items-center border-t border-white/5 p-4 bg-slate-800 text-white gap-1">
+				<div className="flex items-center mb-1">
+					<p className="text-orange-400 font-black text-[14px] tracking-widest uppercase mr-2">
 						Next
 					</p>
-					<p className="text-lg lg:text-2xl font-bold">
+					<p className="text-2xl lg:text-3xl font-bold">
 						{next?.className || "Finished"}
 					</p>
 				</div>
-				<div className="text-center flex flex-col items-center justify-center px-2">
-					<p className="text-slate-300 font-black text-[10px] tracking-widest uppercase mb-1">
+				<div className="flex items-center">
+					<p className="text-slate-300 font-black text-[14px] tracking-widest uppercase mr-2">
 						Time
 					</p>
-					<p className="text-base lg:text-lg font-mono font-bold">
+					<p className="text-2xl lg:text-3xl font-mono font-bold mr-4">
 						{next
 							? `${next.start} ～ ${next.end}`
 							: "--:-- ～ --:--"}
 					</p>
-				</div>
-				<div className="text-right">
-					<p className="text-slate-400 font-black text-[10px] tracking-widest uppercase mb-1">
+					<p className="text-slate-400 font-black text-[14px] tracking-widest uppercase mr-2">
 						Duration
 					</p>
-					<p className="text-lg lg:text-2xl font-bold">
+					<p className="text-2xl lg:text-3xl font-bold">
 						{next?.duration || "--:--"}
 					</p>
 				</div>
