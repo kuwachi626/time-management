@@ -200,7 +200,7 @@ const App: React.FC = () => {
 			{/* メイン: スマホで縦、PCで横並び */}
 			<main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
 				{/* 左側: カウントダウン ＆ メイン情報 */}
-				<div className="flex-1 flex flex-col p-6 lg:p-10 justify-between border-b lg:border-b-0 lg:border-r border-white/10 overflow-hidden">
+				<div className="flex-1 flex flex-col p-6 lg:pb-10 lg:pr-10 lg:pl-10 lg:pt-5 justify-between border-b lg:border-b-0 lg:border-r border-white/10 overflow-hidden">
 					{/* 現在のクラス情報 */}
 					<div className="shrink-0">
 						<p
