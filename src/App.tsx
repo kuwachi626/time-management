@@ -178,8 +178,8 @@ const App: React.FC = () => {
 
 	return (
 		<div className="h-[100svh] w-full flex flex-col font-sans overflow-hidden">
-			{/* ヘッダー: コンパクト化 */}
-			<header className="flex justify-between items-center px-4 py-2 bg-slate-900 shrink-0 border-b border-white/10">
+			{/* ヘッダー: コンパクト化 (viewport-fit=cover のためノッチ分を足す) */}
+			<header className="flex justify-between items-center px-4 py-2 pt-[calc(0.5rem_+_env(safe-area-inset-top))] pl-[calc(1rem_+_env(safe-area-inset-left))] pr-[calc(1rem_+_env(safe-area-inset-right))] bg-slate-900 shrink-0 border-b border-white/10">
 				<div className="flex items-center gap-3 min-w-0">
 					<label className="flex items-center gap-2 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-bold transition-colors shrink-0">
 						<span>CSVアップロード</span>
@@ -386,7 +386,7 @@ const App: React.FC = () => {
 				</div>
 			</main>
 			{/* フッター的なステータス */}
-			<footer className="shrink-0 flex flex-col lg:flex-row lg:justify-center items-center border-t border-white/5 p-4 bg-slate-800 text-white gap-1">
+			<footer className="shrink-0 flex flex-col lg:flex-row lg:justify-center items-center border-t border-white/5 p-4 pb-[calc(1rem_+_env(safe-area-inset-bottom))] pl-[calc(1rem_+_env(safe-area-inset-left))] pr-[calc(1rem_+_env(safe-area-inset-right))] bg-slate-800 text-white gap-1">
 				<div className="flex items-center mb-1">
 					<p className="text-orange-400 font-black text-[14px] tracking-widest uppercase mr-2">
 						Next

@@ -57,12 +57,28 @@ self.addEventListener("fetch", (event) => {
 // 1件でも取得に失敗してもインストール自体は成功させる
 async function precache() {
 	const cache = await caches.open(CACHE_NAME);
+	// 初回訪問時のリソース取得は SW の制御外なので、index.html が参照している
+	// ハッシュ付きアセットもここで入れておかないと「一度開いただけ」ではオフライン起動できない
+	const shell = await fetchAndCache(cache, APP_ROOT);
+	const html = shell ? await shell.text() : "";
 	await Promise.allSettled(
-		PRECACHE_URLS.map(async (url) => {
-			const response = await fetch(new Request(url, { cache: "reload" }));
-			if (response.ok) await cache.put(url, response);
-		}),
+		[
+			...PRECACHE_URLS.filter((url) => url !== APP_ROOT),
+			...referencedAssetUrls(html),
+		].map((url) => fetchAndCache(cache, url)),
 	);
+}
+
+// 取得できたらキャッシュに入れ、本文を読める複製を返す（失敗時は undefined）
+async function fetchAndCache(cache, url) {
+	try {
+		const response = await fetch(new Request(url, { cache: "reload" }));
+		if (!response.ok) return undefined;
+		await cache.put(url, response.clone());
+		return response;
+	} catch {
+		return undefined;
+	}
 }
 
 async function handleNavigation(event) {
@@ -83,16 +99,11 @@ async function handleNavigation(event) {
 }
 
 // アプリシェルは常に APP_ROOT のキーで保存する
+// 本文は複製から読み、レスポンス自体はそのまま保存する
+// （組み立て直すと Content-Length / Content-Encoding が本文と食い違う）
 async function refreshAppShell(cache, response) {
-	const html = await response.text();
-	await cache.put(
-		APP_ROOT,
-		new Response(html, {
-			status: 200,
-			statusText: response.statusText,
-			headers: response.headers,
-		}),
-	);
+	const html = await response.clone().text();
+	await cache.put(APP_ROOT, response);
 	await pruneStaleAssets(cache, html);
 }
 
@@ -101,9 +112,13 @@ async function cacheFirst(request) {
 	const cached = await cache.match(request);
 	if (cached) return cached;
 
-	const response = await fetch(request);
-	if (response.ok) await cache.put(request, response.clone());
-	return response;
+	try {
+		const response = await fetch(request);
+		if (response.ok) await cache.put(request, response.clone());
+		return response;
+	} catch {
+		return Response.error();
+	}
 }
 
 async function staleWhileRevalidate(event, request) {
@@ -124,18 +139,29 @@ async function staleWhileRevalidate(event, request) {
 	return (await update) ?? Response.error();
 }
 
-// 新しい index.html から参照されていない古い /assets/ をキャッシュから消す
-// （デプロイごとにハッシュ付きファイルが増え続けるのを防ぐ）
-// 比較はファイル名で行う。ハッシュ付きで一意なので、index.html 内の参照が
-// 絶対パスでも相対パスでも安全に判定でき、base のパス解決に依存しない。
+const ASSET_REF_RE = /(?:src|href)="([^"]*\/assets\/[^"]+)"/g;
+
+// index.html が参照している /assets/ を絶対URLで返す
+function referencedAssetUrls(html) {
+	const urls = new Set();
+	for (const match of html.matchAll(ASSET_REF_RE)) {
+		urls.add(new URL(match[1], APP_ROOT).href);
+	}
+	return [...urls];
+}
+
 function assetFileName(pathOrUrl) {
 	const withoutQuery = pathOrUrl.split(/[?#]/)[0];
 	return withoutQuery.slice(withoutQuery.lastIndexOf("/") + 1);
 }
 
+// 新しい index.html から参照されていない古い /assets/ をキャッシュから消す
+// （デプロイごとにハッシュ付きファイルが増え続けるのを防ぐ）
+// 比較はファイル名で行う。ハッシュ付きで一意なので、index.html 内の参照が
+// 絶対パスでも相対パスでも安全に判定でき、base のパス解決に依存しない。
 async function pruneStaleAssets(cache, html) {
 	const referenced = new Set();
-	for (const match of html.matchAll(/(?:src|href)="([^"]*\/assets\/[^"]+)"/g)) {
+	for (const match of html.matchAll(ASSET_REF_RE)) {
 		referenced.add(assetFileName(match[1]));
 	}
 	if (referenced.size === 0) return;
