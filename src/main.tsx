@@ -8,3 +8,12 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 )
+
+// Service Worker はビルド版のみ登録する（開発中はキャッシュが HMR の邪魔になるため）
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register(`${import.meta.env.BASE_URL}sw.js`)
+      .catch((err) => console.error('ServiceWorker registration failed:', err))
+  })
+}

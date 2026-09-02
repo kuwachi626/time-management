@@ -2,21 +2,25 @@
 	"id": "/time-management/",
 	"name": "Time Management App",
 	"short_name": "TimeMgmt",
+	"description": "CSVで読み込んだスケジュールの現在の枠と残り時間を大きく表示するタイマーアプリ",
+	"lang": "ja",
 	"start_url": "/time-management/",
 	"scope": "/time-management/",
 	"display": "standalone",
 	"background_color": "#ffffff",
-	"theme_color": "#000000",
+	"theme_color": "#0f172a",
 	"icons": [
 		{
 			"src": "icon_192.png",
 			"sizes": "192x192",
-			"type": "image/png"
+			"type": "image/png",
+			"purpose": "any"
 		},
 		{
 			"src": "icon_512.png",
 			"sizes": "512x512",
-			"type": "image/png"
+			"type": "image/png",
+			"purpose": "any"
 		}
 	],
 	"screenshots": [
